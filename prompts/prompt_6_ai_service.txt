@@ -1,0 +1,16 @@
+Prompt 6: AI Service Integration
+Objective
+Integrate OpenAI GPT-4 for intelligent Vietnamese astrology consultations with conversation management and token usage tracking.
+Key Tasks
+	•	Implement OpenAI API integration service
+	•	Create Vietnamese astrology prompt engineering
+	•	Build conversation context management
+	•	Implement token usage tracking per consultation
+	•	Create AI response processing and formatting
+	•	Integrate with chat system from Phase 5
+Deliverables
+	•	AI consultation service
+	•	Prompt engineering system
+	•	Token usage tracking
+	•	Conversation management
+	•	Vietnamese astrology expertise prompts

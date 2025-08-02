@@ -1,0 +1,59 @@
+# Prettier ignore patterns for Ha Linh Vietnamese Astrology Project
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+coverage/
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Docker
+docker/
+Dockerfile*
+docker-compose*.yml
+
+# Database
+*.db
+*.sqlite
+
+# Uploads
+uploads/
+temp/
+
+# Generated files
+*.d.ts
+*.map
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Vietnamese specific files that should not be formatted
+# (preserve original formatting for cultural accuracy)
+docs/vietnamese-astrology-reference.md
+docs/cultural-guidelines.md

@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks for Ha Linh Vietnamese Astrology..."
+
+# Check if we're in the right directory
+if [ ! -f "package.json" ]; then
+  echo "❌ Not in project root directory"
+  exit 1
+fi
+
+echo "📝 Running Vietnamese code formatting check..."
+npm run format:check
+
+if [ $? -ne 0 ]; then
+  echo "❌ Code formatting issues found. Run 'npm run format' to fix."
+  exit 1
+fi
+
+echo "🔍 Running Vietnamese code linting..."
+npm run lint
+
+if [ $? -ne 0 ]; then
+  echo "❌ Linting errors found. Please fix before committing."
+  exit 1
+fi
+
+echo "🧪 Running Vietnamese astrology unit tests..."
+npm run test:unit
+
+if [ $? -ne 0 ]; then
+  echo "❌ Unit tests failed. Please fix before committing."
+  exit 1
+fi
+
+echo "📊 Running TypeScript type checking..."
+npm run type-check
+
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript errors found. Please fix before committing."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed for Vietnamese astrology project!"
+echo "🇻🇳 Ready to commit Vietnamese astrology code changes!"

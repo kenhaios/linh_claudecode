@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "📝 Validating Vietnamese commit message format..."
+
+# Read commit message
+commit_msg=$(cat $1)
+
+# Vietnamese commit message validation
+# Allow both English and Vietnamese commit messages
+# Format: type(scope): description
+# Examples: 
+# - feat(auth): thêm đăng nhập bằng số điện thoại
+# - fix(chart): sửa lỗi tính toán lá số tử vi
+# - docs(readme): cập nhật hướng dẫn tiếng Việt
+
+commit_regex='^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\(.+\))?: .{10,100}$'
+
+if ! echo "$commit_msg" | grep -qE "$commit_regex"; then
+  echo "❌ Invalid commit message format!"
+  echo ""
+  echo "Commit message should follow this format:"
+  echo "type(scope): description"
+  echo ""
+  echo "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build"
+  echo "Description should be 10-100 characters"
+  echo ""
+  echo "Examples (Vietnamese supported):"
+  echo "✅ feat(auth): thêm đăng nhập bằng số điện thoại"
+  echo "✅ fix(chart): sửa lỗi tính toán lá số tử vi"
+  echo "✅ docs(readme): cập nhật hướng dẫn tiếng Việt"
+  echo "✅ feat(payment): add Vietnamese payment providers"
+  echo ""
+  echo "Your message: $commit_msg"
+  exit 1
+fi
+
+echo "✅ Vietnamese commit message format is valid!"
