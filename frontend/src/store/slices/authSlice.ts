@@ -1,27 +1,11 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authAPI } from '@/services/api';
+import { IUser } from '../../../shared/types/auth';
+import authAPI from '../../services/authAPI';
 
-// Types
-interface User {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  avatar?: string;
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
-  tokenBalance: number;
-  role: string;
-  preferences: {
-    language: 'vi' | 'en';
-    astrologyMethod: 'bắc_phái' | 'nam_phái' | 'phổ_biến';
-    dateFormat: 'solar' | 'lunar';
-  };
-  createdAt: string;
-}
+// Use shared User interface
 
 interface AuthState {
-  user: User | null;
+  user: IUser | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -52,7 +36,7 @@ const initialState: AuthState = {
 };
 
 // Async thunks
-export const register = createAsyncThunk(
+export const registerUser = createAsyncThunk(
   'auth/register',
   async (
     userData: {
@@ -61,32 +45,51 @@ export const register = createAsyncThunk(
       phone?: string;
       password: string;
       confirmPassword: string;
+      dateOfBirth?: string;
+      preferences?: {
+        language?: 'vi' | 'en';
+        timezone?: string;
+        theme?: 'vietnamese-traditional' | 'light' | 'dark';
+      };
+      location?: {
+        province?: string;
+        district?: string;
+      };
     },
     { rejectWithValue }
   ) => {
     try {
       const response = await authAPI.register(userData);
-      return response.data;
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        return rejectWithValue(response.data.error || 'Đăng ký thất bại');
+      }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error?.message || 'Đăng ký thất bại');
+      return rejectWithValue(error.response?.data?.error || error.message || 'Đăng ký thất bại');
     }
   }
 );
 
-export const login = createAsyncThunk(
+export const loginUser = createAsyncThunk(
   'auth/login',
   async (
     credentials: {
       identifier: string;
       password: string;
+      rememberMe?: boolean;
     },
     { rejectWithValue }
   ) => {
     try {
       const response = await authAPI.login(credentials);
-      return response.data;
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        return rejectWithValue(response.data.error || 'Đăng nhập thất bại');
+      }
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error?.message || 'Đăng nhập thất bại');
+      return rejectWithValue(error.response?.data?.error || error.message || 'Đăng nhập thất bại');
     }
   }
 );
@@ -131,7 +134,7 @@ export const refreshTokenAsync = createAsyncThunk(
 export const updateProfile = createAsyncThunk(
   'auth/updateProfile',
   async (
-    profileData: Partial<User>,
+    profileData: Partial<IUser>,
     { rejectWithValue }
   ) => {
     try {
@@ -234,7 +237,7 @@ const authSlice = createSlice({
     },
     
     // Update user profile locally
-    updateUserProfile: (state, action: PayloadAction<Partial<User>>) => {
+    updateUserProfile: (state, action: PayloadAction<Partial<IUser>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
       }
@@ -272,41 +275,55 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     // Register
     builder
-      .addCase(register.pending, (state) => {
+      .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(register.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.registrationStep = 'verification';
-        state.pendingVerification = {
-          identifier: action.payload.identifier,
-          type: action.payload.type,
-        };
+        state.user = action.payload.user;
+        state.accessToken = action.payload.tokens.accessToken;
+        state.refreshToken = action.payload.tokens.refreshToken;
+        state.isAuthenticated = true;
+        
+        // Set verification status
+        if (action.payload.verificationRequired.email || action.payload.verificationRequired.phone) {
+          state.registrationStep = 'verification';
+          state.pendingVerification = {
+            identifier: action.payload.user.email || action.payload.user.phone || '',
+            type: action.payload.verificationRequired.email ? 'email' : 'phone',
+          };
+        } else {
+          state.registrationStep = 'completed';
+        }
+        
+        // Store tokens in localStorage
+        localStorage.setItem('accessToken', action.payload.tokens.accessToken);
+        localStorage.setItem('refreshToken', action.payload.tokens.refreshToken);
       })
-      .addCase(register.rejected, (state, action) => {
+      .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
     
     // Login
     builder
-      .addCase(login.pending, (state) => {
+      .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(login.fulfilled, (state, action) => {
+      .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.accessToken = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
+        state.accessToken = action.payload.tokens.accessToken;
+        state.refreshToken = action.payload.tokens.refreshToken;
         state.isAuthenticated = true;
         
         // Store tokens in localStorage
-        localStorage.setItem('accessToken', action.payload.accessToken);
-        localStorage.setItem('refreshToken', action.payload.refreshToken);
+        localStorage.setItem('accessToken', action.payload.tokens.accessToken);
+        localStorage.setItem('refreshToken', action.payload.tokens.refreshToken);
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });
